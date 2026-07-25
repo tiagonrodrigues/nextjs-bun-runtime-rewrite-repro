@@ -33,7 +33,28 @@ of the time with the title `ROOT PAGE`; `/pt/*` never fails.
 To confirm the runtime is the trigger, remove `bunVersion` from `vercel.json`, redeploy, and run
 the same script.
 
+## Measured on this repro
+
+Two deployments of this exact code, differing only in `vercel.json`:
+
+| Route | Bun runtime | Node runtime |
+| --- | --- | --- |
+| `/alpha` | 7 / 40 failed | 0 / 40 |
+| `/beta` | 4 / 40 failed | 0 / 40 |
+| `/gamma` | 7 / 40 failed | 0 / 40 |
+| `/pt/alpha` | 0 / 40 | 0 / 40 |
+| `/pt/beta` | 0 / 40 | 0 / 40 |
+| `/pt/gamma` | 0 / 40 | 0 / 40 |
+
+Every failure was HTTP 200 carrying the root page's HTML (`<title>ROOT PAGE</title>`), on an
+unprefixed route. The locale-prefixed equivalents, which do not need the rewrite, never failed.
+
+On a larger real-world app the same setup also produces HTTP 500 with `ResolveMessage {}` in the
+runtime logs on dynamic segments; this minimal app only surfaces the silent 200 variant.
+
 ## Note on sample size
 
 The failure rate is a fraction of requests, so a handful of requests can easily come back clean.
 Run at least 40 iterations before concluding either way.
+
+`check.sh` is POSIX-ish on purpose so it runs on the bash 3.2 that ships with macOS.
